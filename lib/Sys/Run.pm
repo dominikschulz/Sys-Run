@@ -71,11 +71,22 @@ sub run_cmd {
         $cmd .= ' >>' . $opts->{Logfile} . ' 2>&1';
     }
     elsif ( $opts->{CaptureOutput} ) {
-
+      if ( $opts->{Outfile} ) {
+        if ( $opts->{Append} ) {
+          $cmd .= ' >>'.$opts->{Outfile};
+        } else {
+          $cmd .= ' >' .$opts->{Outfile};
+        }
+      } else {
         # mktemp, redirect to tempfile
         $tempdir = File::Temp::->newdir( CLEANUP => 1, );
         $outfile = $tempdir . '/cmd.out';
-        $cmd .= ' >'.$outfile.' 2>&1';
+        $cmd .= ' >'.$outfile;
+      }
+      # only redirect STDERR if not already redirected
+      if($cmd !~ m/\s2>/) {
+        $cmd .= ' 2>&1';
+      }
     }
     else {
         if ( !$opts->{Verbose} && $cmd !~ m/>/ ) {
@@ -110,7 +121,7 @@ sub run_cmd {
     }
     if ( defined($rv) && $rv == 0 ) {
         $self->logger()->log( message => 'Command completed successfully', level => 'debug', );
-        if ( $opts->{CaptureOutput} ) {
+        if ( $opts->{CaptureOutput} && !$opts->{Outfile} ) {
             return File::Blarf::slurp( $outfile, $opts );
         }
         else {
