@@ -31,6 +31,11 @@ has 'ssh_hostkey_check' => (
 
 with qw(Log::Tree::RequiredLogger);
 
+=method check_ssh_login
+
+Make sure an password-less SSH access to the target is working.
+
+=cut
 sub check_ssh_login {
     my $self   = shift;
     my $target = shift;
@@ -47,6 +52,11 @@ sub check_ssh_login {
     }
 }
 
+=method clear_caches
+
+Clear all OS-level (linux) caches.
+
+=cut
 sub clear_caches {
     my $self = shift;
     my $opts = shift || {};
@@ -60,6 +70,20 @@ sub clear_caches {
     return;
 }
 
+=method run_cmd
+
+Run the given command.
+
+Available options:
+- Logfile
+- CaptureOutput
+-- Outfile
+--- Append
+- Verbose
+- Timeout
+- ReturnRV
+
+=cut
 sub run_cmd {
     my $self = shift;
     my $cmd  = shift;
@@ -145,6 +169,11 @@ sub run_cmd {
     }
 }
 
+=method run
+
+Run the given command on the given hostname (maybe localhost).
+
+=cut
 sub run {
     my $self = shift;
     my $host = shift;
@@ -159,6 +188,19 @@ sub run {
     }
 }
 
+=method run_remote_cmd
+
+Run the given command on the remote host.
+
+Available Options:
+- NoHup
+- UseSSHAgent
+- NoSSHStrictHostKeyChecking
+- SSHOpts
+- ReturnRV
+- Retry
+
+=cut
 sub run_remote_cmd {
     my $self = shift;
     my $host = shift;
@@ -260,14 +302,11 @@ sub run_remote_cmd {
     }
 }
 
-############################################
-# Usage      : check_binary('ls');
-# Purpose    : Check if a given binary is in the PATH.
-# Returns    : ????
-# Parameters : ????
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : n/a
+=method check_binary
+
+Make sure the given (unqalified) binary exists somewhere in the search path.
+
+=cut
 sub check_binary {
     my $self   = shift;
     my $binary = shift;
@@ -288,6 +327,11 @@ sub check_binary {
     return;
 }
 
+=method check_remote_binary
+
+Make sure the given command is an executeable binary on the remote host.
+
+=cut
 sub check_remote_binary {
     my $self   = shift;
     my $host   = shift;
@@ -333,32 +377,5 @@ Sys::Run - Run commands and handle their output.
 
 Run commands and handle output.
 
-=method check_binary
+=cut
 
-Test if the given binary is within the search path and executeable.
-
-=method check_remote_binary
-
-Test if the given binary is executeable on the given remote host.
-
-=method check_ssh_login
-
-Test if a password-less SSH login at the given host is possible.
-
-=method clear_caches
-
-Drop all FS caches.
-
-=method run
-
-Run the given command on the given host.
-
-=method run_cmd
-
-Run the given command on the local host.
-
-=method run_remote_cmd
-
-Run the given command on the remote host.
-
-1; # End of Sys::Run
