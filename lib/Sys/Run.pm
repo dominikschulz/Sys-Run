@@ -132,7 +132,11 @@ sub run_cmd {
     eval {
         local $SIG{ALRM} = sub { die "alarm-sys-run-cmd\n"; };
         $prev_timeout = alarm $timeout if $timeout > 0;
-        $rv = system($cmd) >> 8;
+        if( $opts->{DryRun} ) {
+          $rv = 0;
+        } else {
+          $rv = system($cmd) >> 8;
+        }
     };
     alarm $prev_timeout if $timeout > 0;
     if ( $@ && $@ eq "alarm-sys-run-cmd\n" ) {
@@ -141,7 +145,11 @@ sub run_cmd {
     }
     if ( $opts->{Logfile} ) {
         local $opts->{Append} = 1;
-        File::Blarf::blarf( $opts->{Logfile}, time().' - CMD finished. Exit Code: '.$rv."\n", $opts );
+        my $output = time().' - CMD finished. Exit Code: '.$rv."\n";
+        if( $opts->{DryRun} ) {
+          $output = 'CMD finished in DryRun mode. Faking exit code: 0.'."\n";
+        }
+        File::Blarf::blarf( $opts->{Logfile}, $output, $opts );
     }
     if ( defined($rv) && $rv == 0 ) {
         $self->logger()->log( message => 'Command completed successfully', level => 'debug', );
