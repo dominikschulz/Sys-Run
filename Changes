@@ -1,5 +1,8 @@
 Revision history for Sys-Run
 
+0.14  2013-12-04
+      Add DryRun Mode.
+
 0.12  2013-11-03
       Add Outfile option and lots of tests.
 
