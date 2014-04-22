@@ -7,7 +7,7 @@ use File::Temp;
 use File::Blarf;
 use Sys::Run;
 use Test::MockObject::Universal;
-use Test::More tests => 27;
+use Test::More tests => 30;
 
 my $Logger = Test::MockObject::Universal::->new();
 my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
@@ -79,4 +79,10 @@ isnt($Run->run_cmd('false', { ReturnRV => 0, }, ), 1);
 is($Run->run_cmd('true', { ReturnRV => 1, }, ), 0);
 # - w/ ReturnRV == 1 and exit 1
 is($Run->run_cmd('false', { ReturnRV => 1, }, ), 1);
+
+# Test SSH Options
+like($Run->_ssh_opts(), qr/oBatchMode=yes/, 'SSH Options contain ssh Batch Mode');
+unlike($Run->_ssh_opts(), qr/oStrictHostKeyChecking=no/, 'SSH Options do not contain StrictHostKeyChecking=no');
+$Run->ssh_hostkey_check(0);
+like($Run->_ssh_opts(), qr/oStrictHostKeyChecking=no/, 'SSH Options do contain StrictHostKeyChecking=no');
 

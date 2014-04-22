@@ -196,6 +196,28 @@ sub run {
     }
 }
 
+sub _ssh_opts {
+    my $self = shift;
+    my $opts = shift || {};
+
+    my $ssh_opts = '-oBatchMode=yes ';
+    if ( $opts->{NoSSHStrictHostKeyChecking} || !$self->ssh_hostkey_check() ) {
+        $ssh_opts .= '-oStrictHostKeyChecking=no ';
+        $ssh_opts .= '-oUserKnownHostsFile=/dev/null ';
+    }
+    if ( $opts->{SSHVerbose} ) {
+        $ssh_opts .= q{-v };
+    } else {
+        # if we're not supposed to be verbose, we're quiet
+        $ssh_opts .= q{-q };
+    }
+    # add any extra ssh options, like ports et.al.
+    if ( $opts->{SSHOpts} ) {
+        $ssh_opts .= $opts->{SSHOpts}.q{ };
+    }
+    return $ssh_opts;
+}
+
 =method run_remote_cmd
 
 Run the given command on the remote host.
@@ -232,6 +254,8 @@ sub run_remote_cmd {
         $cmd .= ' &';
     }
 
+    my $rcmd = 'ssh '.$self->_ssh_opts( $opts ).q{ }.$host.q{ '}.$cmd.q{'};
+
     # Do not use a forwarded SSH agent unless
     # explicitly asked for. Otherwise a long running operation, e.g. a sync,
     # may be started in a screen w/ the ssh auth of the user. When this users
@@ -247,23 +271,6 @@ sub run_remote_cmd {
         $ENV{SSH_AUTH_SOCK} = q{};
         ## use critic
     }
-    my $rcmd = 'ssh -oBatchMode=yes ';
-    if ( $opts->{NoSSHStrictHostKeyChecking} || !$self->ssh_hostkey_check() ) {
-        $rcmd .= '-oStrictHostKeyChecking=no ';
-        $rcmd .= '-oUserKnownHostsFile=/dev/null ';
-    }
-    if ( $opts->{SSHVerbose} ) {
-        $rcmd .= q{-v };
-    } else {
-        # if we're not supposed to be verbose, we're quiet
-        $rcmd .= q{-q };
-    }
-    # add any extra ssh options, like ports et.al.
-    if ( $opts->{SSHOpts} ) {
-        $rcmd .= $opts->{SSHOpts}.q{ };
-    }
-    $rcmd .= $host.q{ '}.$cmd.q{'};
-
     $self->logger()->log( message => 'CMD: '.$rcmd, level => 'debug', );
     my $rv = $self->run_cmd( $rcmd, $opts );
 
