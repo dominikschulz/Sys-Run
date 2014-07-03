@@ -16,6 +16,7 @@ use Carp;
 use File::Temp qw();
 use File::Blarf;
 use Net::Domain qw();
+use Time::HiRes qw(gettimeofday tv_interval);
 
 has 'ssh_agent' => (
     'is'        => 'rw',
@@ -27,6 +28,12 @@ has 'ssh_hostkey_check' => (
     'is'        => 'rw',
     'isa'       => 'Bool',
     'default'   => 1,
+);
+
+has 'log_times' => (
+    'is'        => 'rw',
+    'isa'       => 'Bool',
+    'default'   => 0,
 );
 
 with qw(Log::Tree::RequiredLogger);
@@ -129,6 +136,7 @@ sub run_cmd {
     my $rv           = undef;
     my $timeout      = $opts->{Timeout} // 0;
     my $prev_timeout = 0;
+    my $t0           = [gettimeofday];
     eval {
         local $SIG{ALRM} = sub { die "alarm-sys-run-cmd\n"; };
         $prev_timeout = alarm $timeout if $timeout > 0;
@@ -139,6 +147,10 @@ sub run_cmd {
         }
     };
     alarm $prev_timeout if $timeout > 0;
+    if ( $self->log_times() ) {
+        my $d0 = tv_interval( $t0 );
+        $self->logger()->log( message => 'CMD ran for '.$d0.'s', level => 'debug', );
+    }
     if ( $@ && $@ eq "alarm-sys-run-cmd\n" ) {
         $rv = 1;
         $self->logger()->log( message => 'CMD timed out after '.$timeout, level => 'warning', );

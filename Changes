@@ -1,5 +1,8 @@
 Revision history for Sys-Run
 
+0.16  2014-07-03
+      Add log_times option.
+
 0.15  2014-04-22
       Refactor SSH option generation.
 
