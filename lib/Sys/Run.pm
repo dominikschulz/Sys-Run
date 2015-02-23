@@ -179,7 +179,7 @@ sub run_cmd {
     }
     else {
         $rv ||= '';
-        $self->logger()->log( message => 'Could not execute '.$cmd.' without error. Exit Code: '.$rv.', Error: ' . $!, level => 'warning', );
+        $self->logger()->log( message => 'Could not execute '.$cmd.' without error. Exit Code: '.$rv, level => 'warning', );
         if ( $opts->{ReturnRV} ) {
             return $rv;
         }
